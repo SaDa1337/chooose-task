@@ -3,29 +3,27 @@ import { IAdvantage, ITrip, TripState } from "../../types/trip"
 import { Text, Icon, Card, CardBody, Link as ChakraLink, Flex, Heading, Image, ListItem, UnorderedList, Box, Divider, Spacer, SimpleGrid } from "@chakra-ui/react"
 import { Link as ReactRouterLink } from 'react-router-dom'
 import { TripContext } from "../../context/tripContext";
-import { formatWeight } from "../../lib/helpers";
+import { checkHashEquality, formatWeight } from "../../lib/helpers";
 import { TripAdvantage } from "../../components/trip-advantage/tripAdvantage.component";
 import { BsFlag } from 'react-icons/bs'
 import { PiGlobeHemisphereEast } from 'react-icons/pi'
 import { LiaBriefcaseSolid } from 'react-icons/lia'
 import { GoPeople } from 'react-icons/go'
-import { httpClient } from "../../lib/httpClient";
+import { executeRequestWithCache } from "../../lib/httpClient";
 
 export const TripDetails = () => {  
   const {selectedTrip, setSelectedTrip} = React.useContext(TripContext) as TripState;
 
   React.useEffect(() => {
     const fetchData = async () => {
-      const response = await httpClient().get<ITrip>('/single trip.json');
-      if(selectedTrip==null || selectedTrip.id !== response.data.id) {
-        setSelectedTrip(response.data);
+      const response = await executeRequestWithCache<ITrip>('/single trip.json');
+      if(!(await checkHashEquality(selectedTrip, response))){
+        setSelectedTrip(response);
       }
     }
   
-    if(selectedTrip==null) {
-      fetchData()
-        .catch(console.error);
-    }
+    fetchData()
+      .catch(console.error);
   });
 
   const iconList: Map<number, React.ReactNode> = new Map([

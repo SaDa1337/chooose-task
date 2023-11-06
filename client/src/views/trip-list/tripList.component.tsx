@@ -3,8 +3,9 @@ import { TripContext } from "../../context/tripContext";
 import { ITrip, TripState } from "../../types/trip";
 import { TripListTile } from "../../components/trip-list-tile/tripListTile.component";
 import { SimpleGrid } from "@chakra-ui/react";
-import { httpClient } from "../../lib/httpClient";
+import { executeRequestWithCache } from "../../lib/httpClient";
 import InfiniteScroll from "react-infinite-scroll-component";
+import { checkHashEquality } from "../../lib/helpers";
 
 export const TripList = () => {  
   const {trips, setTrips} = React.useContext(TripContext) as TripState;
@@ -12,21 +13,16 @@ export const TripList = () => {
   const [loadedTrips, setLoadedTrips] = React.useState<ITrip[]>([]);
   React.useEffect(() => {
     const fetchData = async () => {
-      const response = await httpClient().get<ITrip[]>('/trips.json');
-      setTrips(response.data);
-      setLoadedTrips(response.data.slice(0, 30));
+      const response = await executeRequestWithCache<ITrip[]>('/trips.json');
+      if(!(await checkHashEquality(trips, response))){
+        setTrips(response);
+      }
+      setLoadedTrips(response.slice(0, 30));
     }
   
-    if(trips == null || trips.length === 0){
-      fetchData()
-        .catch(console.error);
-    }
-    else{
-      setLoadedTrips(trips.slice(0, 30));      
-    }
+    fetchData()
+      .catch(console.error);
   }, [trips, setTrips]);
-
-  return React.useMemo(()=>{
 
     const loadMore = () => {
       setLoadedTrips([...loadedTrips.concat(trips.slice(loadedTrips.length, Math.min(trips.length, loadedTrips.length+30)))]);
@@ -49,6 +45,5 @@ export const TripList = () => {
       })}
       </SimpleGrid>
       </InfiniteScroll>
-    )
-  }, [loadedTrips, trips]);
+    );
 }

@@ -11,7 +11,11 @@ describe("Trip List", ()=> {
 
   beforeAll(() =>{
     mockedAxios.create.mockReturnThis();
-  })
+  });
+
+  afterEach(()=>{
+    window.sessionStorage.clear();
+  });
 
   it("Shows empty if backend returns no trips", async () =>{
     mockedAxios.get.mockResolvedValueOnce({data: []});
@@ -35,7 +39,7 @@ describe("Trip List", ()=> {
   });
     
   it("Shows list if backend returns trips", async () =>{
-    mockedAxios.get.mockResolvedValueOnce({data: jsonTrips});
+    mockedAxios.get.mockResolvedValueOnce({data: jsonTrips, status: 200});
 
     let container : RenderResult;
     await act(async() =>{
@@ -47,7 +51,7 @@ describe("Trip List", ()=> {
   });
 
   it("Shows 30 elements backend returns more than 30 trips", async () =>{
-    jest.mocked(mockedAxios.get).mockResolvedValue({data: jsonTrips});
+    jest.mocked(mockedAxios.get).mockResolvedValue({data: jsonTrips , status: 200});
 
     let container : RenderResult;
     await act(async() =>{

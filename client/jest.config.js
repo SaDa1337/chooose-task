@@ -7,4 +7,5 @@ module.exports = {
     },
     preset: 'ts-jest',
     testEnvironment: 'jsdom',
+    setupFilesAfterEnv: ['./jest-script-setup.js'],
 };
